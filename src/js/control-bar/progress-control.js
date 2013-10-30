@@ -86,7 +86,9 @@ vjs.SeekBar.prototype.getPercent = function(){
     currentTime = this.player_.currentTime();
   }
 
-  return currentTime / this.player_.duration();
+  var inTime = this.player_.inTime() || 0;
+
+  return Math.min(1, Math.max(0, (currentTime - inTime) / this.player_.duration()));
 };
 
 vjs.SeekBar.prototype.onMouseDown = function(event){
@@ -99,7 +101,8 @@ vjs.SeekBar.prototype.onMouseDown = function(event){
 };
 
 vjs.SeekBar.prototype.onMouseMove = function(event){
-  var newTime = this.calculateDistance(event) * this.player_.duration();
+  var inTime = this.player_.inTime() || 0;
+  var newTime = (this.calculateDistance(event) * this.player_.duration()) + inTime;
 
   // Don't let video end while scrubbing.
   if (newTime == this.player_.duration()) { newTime = newTime - 0.1; }

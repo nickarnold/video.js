@@ -428,6 +428,10 @@ vjs.Player.prototype.onLoadedAllData;
  * @event play
  */
 vjs.Player.prototype.onPlay = function(){
+  if (this.currentTime() < this.inTime() || this.currentTime() > this.outTime()) {
+    this.currentTime(this.inTime());
+  }
+
   vjs.removeClass(this.el_, 'vjs-paused');
   vjs.addClass(this.el_, 'vjs-playing');
 };
@@ -496,7 +500,7 @@ vjs.Player.prototype.onEnded = function(){
  * @event durationchange
  */
 vjs.Player.prototype.onDurationChange = function(){
-  // Allows for cacheing value instead of asking player each time.
+  // Allows for caching value instead of asking player each time.
   this.duration(this.techGet('duration'));
 };
 
@@ -658,6 +662,51 @@ vjs.Player.prototype.currentTime = function(seconds){
 };
 
 /**
+ * Get or set the time that the video should start from
+ *
+ *      //get
+ *      var clipStartTime = myPlayer.inTime();
+ *
+ *      //set
+ *      myPlayer.inTime(3600.00); // 1 hour into the video
+ * 
+ * @param {Number|String=} seconds
+ * @return {Number}       The time in seconds, when not setting.
+ * @return {vjs.Player}   self, when setting the current in time.
+ */
+vjs.Player.prototype.inTime = function(seconds){
+  if (seconds !== undefined) {
+    this.cache_.inTime = parseFloat(seconds);
+    this.currentTime(this.cache_.inTime);
+    return this;
+  }
+
+  return this.cache_.inTime;
+};
+
+/**
+ * Get or set the time that the video should end at
+ *
+ *      //get
+ *      var clipEndTime = myPlayer.outTime();
+ *
+ *      //set
+ *      myPlayer.outTime(3600.00); // 1 hour into the video
+ * 
+ * @param {Number|String=} seconds
+ * @return {Number}       The time in seconds, when not setting.
+ * @return {vjs.Player}   self, when setting the current out time.
+ */
+vjs.Player.prototype.outTime = function(seconds){
+  if (seconds !== undefined) {
+    this.cache_.outTime = parseFloat(seconds);
+    return this;
+  }
+
+  return this.cache_.outTime;
+};
+
+/**
  * Get the length in time of the video in seconds
  *
  *     var lengthOfVideo = myPlayer.duration();
@@ -681,12 +730,31 @@ vjs.Player.prototype.duration = function(seconds){
     this.onDurationChange();
   }
 
-  return this.cache_.duration;
+  var inTime = this.inTime();
+  var outTime = this.outTime();
+  if (isNaN(inTime)) {
+    if (isNaN(outTime)) {
+      return this.cache_.duration;
+    }
+    else {
+      return outTime;
+    }
+  }
+  else {
+    if (isNaN(outTime)) {
+      return this.cache_.duration - inTime;
+    }
+    else {
+      return outTime - inTime;
+    }
+  }
+
 };
 
 // Calculates how much time is left. Not in spec, but useful.
 vjs.Player.prototype.remainingTime = function(){
-  return this.duration() - this.currentTime();
+  var inTime = this.inTime() || 0;
+  return Math.min(this.duration(), Math.max(0, this.duration() - (this.currentTime() - inTime)));
 };
 
 // http://dev.w3.org/html5/spec/video.html#dom-media-buffered
