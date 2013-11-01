@@ -361,6 +361,7 @@ fonts to show/hide properly.
 }
 
 /* Progress Bars */
+.vjs-default-skin .vjs-progress-holder .vjs-mark-bar,
 .vjs-default-skin .vjs-progress-holder .vjs-play-progress,
 .vjs-default-skin .vjs-progress-holder .vjs-load-progress {
   position: absolute;
@@ -389,6 +390,18 @@ fonts to show/hide properly.
 .vjs-default-skin .vjs-load-progress {
   background: rgb(100, 100, 100) /* IE8- Fallback */;
   background: rgba(255, 255, 255, 0.4);
+}
+
+.vjs-default-skin .vjs-mark-bar {
+  opacity: 0.8;
+
+  background: #F9D423;
+  background: -webkit-linear-gradient(top, #F9D423, #BFA31B);
+  background:    -moz-linear-gradient(top, #F9D423, #BFA31B);
+  background:     -ms-linear-gradient(top, #F9D423, #BFA31B);
+  background:      -o-linear-gradient(top, #F9D423, #BFA31B);
+  background:        -webkit-gradient(linear, 0% 0%, 0% 100%, from(#F9D423), to(#BFA31B));
+  background:         linear-gradient(top, #F9D423, #BFA31B);
 }
 
 .vjs-default-skin .vjs-seek-handle {

@@ -44,6 +44,7 @@ vjs.SeekBar = vjs.Slider.extend({
 vjs.SeekBar.prototype.options_ = {
   children: {
     'loadProgressBar': {},
+    'markBar': {},
     'playProgressBar': {},
     'seekHandle': {}
   },
@@ -153,6 +154,56 @@ vjs.LoadProgressBar.prototype.createEl = function(){
 
 vjs.LoadProgressBar.prototype.update = function(){
   if (this.el_.style) { this.el_.style.width = vjs.round(this.player_.bufferedPercent() * 100, 2) + '%'; }
+};
+
+
+/**
+ * Shows bar representing the inTime and outTime of a video.
+ *
+ * @param {vjs.Player|Object} player
+ * @param {Object=} options
+ * @constructor
+ */
+vjs.MarkBar = vjs.Component.extend({
+  /** @constructor */
+  init: function(player, options){
+    vjs.Component.call(this, player, options);
+    player.on('markchange', vjs.bind(this, this.update));
+  }
+});
+
+// create the DOM element that will represent the MarkBar
+vjs.MarkBar.prototype.createEl = function(){
+  return vjs.Component.prototype.createEl.call(this, 'div', {
+    className: 'vjs-mark-bar',
+    innerHTML: '<span class="vjs-control-text">0</span>'
+  });
+};
+
+// implement the 'markchange' event handler
+vjs.MarkBar.prototype.update = function(){
+  var markBar = this.el_;
+  var player = this.player_;
+  var inTime = player.inTime() || 0;
+  var markInTime = player.markInTime();
+  var markOutTime = player.markOutTime();
+
+  if (isNaN(markOutTime) && markInTime < player.currentTime()) {
+    markOutTime = player.currentTime();
+  }
+
+  if (!isNaN(markInTime)) {
+    var duration = player.duration();
+    var markInPercent = (markInTime - inTime) / duration;
+    var markOutPercent = (markOutTime - inTime) / duration;
+
+    markBar.el_.style.left = vjs.round(markInPercent * 100, 2) + "%";
+    markBar.el_.style.width = vjs.round((markOutPercent - markInPercent) * 100, 2) + "%";
+  }
+  else {
+    markBar.el_.style.left = "0px";
+    markBar.el_.style.width = "0px";
+  }
 };
 
 

@@ -92,6 +92,9 @@ vjs.Player = vjs.Component.extend({
     this.on('durationchange', this.onDurationChange);
     this.on('error', this.onError);
     this.on('fullscreenchange', this.onFullscreenChange);
+    this.on('loadedmetadata', this.onLoadedMetaData);
+    this.on('loadeddata', this.onLoadedData);
+    this.on('timeupdate', this.onTimeUpdate);
 
     // Make player easily findable by ID
     vjs.players[this.id_] = this;
@@ -409,13 +412,19 @@ vjs.Player.prototype.onLoadStart;
  * Fired when the player has initial duration and dimension information
  * @event loadedmetadata
  */
-vjs.Player.prototype.onLoadedMetaData;
+vjs.Player.prototype.onLoadedMetaData = function() {
+  this.cache_.loadedmetadata = true;
+
+  if (this.inTime() > 0) {
+    this.currentTime(this.inTime());
+  }
+};
 
 /**
  * Fired when the player has downloaded data at the current playback position
  * @event loadeddata
  */
-vjs.Player.prototype.onLoadedMetaData;
+vjs.Player.prototype.onLoadedData;
 
 /**
  * Fired when the player has finished downloading the source data
@@ -428,10 +437,6 @@ vjs.Player.prototype.onLoadedAllData;
  * @event play
  */
 vjs.Player.prototype.onPlay = function(){
-  if (this.currentTime() < this.inTime() || this.currentTime() > this.outTime()) {
-    this.currentTime(this.inTime());
-  }
-
   vjs.removeClass(this.el_, 'vjs-paused');
   vjs.addClass(this.el_, 'vjs-playing');
 };
@@ -471,7 +476,16 @@ vjs.Player.prototype.onPause = function(){
  * playback technology in use.
  * @event timeupdate
  */
-vjs.Player.prototype.onTimeUpdate;
+vjs.Player.prototype.onTimeUpdate = function(){
+  //make sure the time doesn't go past outTime
+  var outTime = this.outTime() || 0;
+  if (!isNaN(outTime) && this.currentTime() >= outTime) {
+    if (this.currentTime > outTime) {
+      this.currentTime(outTime);
+    }
+    this.pause();
+  }
+};
 
 /**
  * Fired while the user agent is downloading media data
@@ -600,6 +614,10 @@ vjs.Player.prototype.techGet = function(method){
  * @return {vjs.Player} self
  */
 vjs.Player.prototype.play = function(){
+  if (this.currentTime() < this.inTime() || this.currentTime() > this.outTime()) {
+    this.currentTime(this.inTime());
+  }
+
   this.techCall('play');
   return this;
 };
@@ -662,6 +680,16 @@ vjs.Player.prototype.currentTime = function(seconds){
 };
 
 /**
+ * Whether or not the 'loadedmetadata' event has been fired for the loaded source.
+ *
+ * @return {Bool} true when the event has fired and false otherwise
+ */
+vjs.Player.prototype.loadedmetadata = function(){
+  return (this.cache_.loadedmetadata === true);
+  //TODO: make sure we reset the cached value when we change sources...
+};
+
+/**
  * Get or set the time that the video should start from
  *
  *      //get
@@ -675,9 +703,15 @@ vjs.Player.prototype.currentTime = function(seconds){
  * @return {vjs.Player}   self, when setting the current in time.
  */
 vjs.Player.prototype.inTime = function(seconds){
-  if (seconds !== undefined) {
+  if (typeof seconds !== undefined) {
     this.cache_.inTime = parseFloat(seconds);
-    this.currentTime(this.cache_.inTime);
+
+    // We can only set the current time if we already know video dimensions
+    // and duration. (loadedmetdata event has fired)
+    if (this.loadedmetadata()) {
+      this.currentTime(this.cache_.inTime);
+    }
+
     return this;
   }
 
@@ -698,12 +732,57 @@ vjs.Player.prototype.inTime = function(seconds){
  * @return {vjs.Player}   self, when setting the current out time.
  */
 vjs.Player.prototype.outTime = function(seconds){
-  if (seconds !== undefined) {
+  if (typeof seconds !== undefined) {
     this.cache_.outTime = parseFloat(seconds);
+    this.trigger('timeupdate');
     return this;
   }
 
   return this.cache_.outTime;
+};
+
+/**
+ * Get or set the time that a marked subsection starts.
+ * 
+ * @param {Number|String=} seconds  start time of the marked subsection
+ * @return {Number}              the subsection start time in seconds, when not setting.
+ * @return {vjs.Player|Object}   self, when setting the current mark in time
+ */
+vjs.Player.prototype.markInTime = function(seconds) {
+  if (typeof seconds !== undefined) {
+    this.cache_.marInTime = parseFloat(seconds);
+    this.trigger('markchange');
+    return this;
+  }
+
+  return this.cache_.markInTime;
+};
+
+/**
+ * Get or set the time that a marked subsection ends.
+ * 
+ * @param {Number|String=} seconds  end time of the marked subsection
+ * @return {Number}              the subsection end time in seconds, when not setting.
+ * @return {vjs.Player|Object}   self, when setting the current mark out time
+ */
+vjs.Player.prototype.markOutTime = function(seconds) {
+  if (typeof seconds !== undefined) {
+    this.cache_.marOutTime = parseFloat(seconds);
+    this.trigger('markchange');
+    return this;
+  }
+
+  return this.cache_.markOutTime;
+};
+
+vjs.Player.prototype.markIn = function() {
+  this.markInTime(this.currentTime());
+  return this;
+};
+
+vjs.Player.prototype.markOut = function() {
+  this.markOutTime(this.currentTime());
+  return this;
 };
 
 /**
@@ -718,7 +797,7 @@ vjs.Player.prototype.outTime = function(seconds){
  * @return {Number} The duration of the video in seconds
  */
 vjs.Player.prototype.duration = function(seconds){
-  if (seconds !== undefined) {
+  if (typeof seconds !== undefined) {
 
     // cache the last set value for optimiized scrubbing (esp. Flash)
     this.cache_.duration = parseFloat(seconds);
