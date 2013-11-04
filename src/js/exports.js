@@ -85,6 +85,7 @@ goog.exportSymbol('videojs.Slider', vjs.Slider);
 goog.exportSymbol('videojs.ProgressControl', vjs.ProgressControl);
 goog.exportSymbol('videojs.SeekBar', vjs.SeekBar);
 goog.exportSymbol('videojs.LoadProgressBar', vjs.LoadProgressBar);
+goog.exportSymbol('videojs.MarkBar', vjs.MarkBar);
 goog.exportSymbol('videojs.PlayProgressBar', vjs.PlayProgressBar);
 goog.exportSymbol('videojs.SeekHandle', vjs.SeekHandle);
 goog.exportSymbol('videojs.VolumeControl', vjs.VolumeControl);
