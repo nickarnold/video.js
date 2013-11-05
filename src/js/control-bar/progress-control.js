@@ -197,12 +197,14 @@ vjs.MarkBar.prototype.update = function(){
     var markInPercent = (markInTime - inTime) / duration;
     var markOutPercent = (markOutTime - inTime) / duration;
 
-    markBar.el_.style.left = vjs.round(markInPercent * 100, 2) + "%";
-    markBar.el_.style.width = vjs.round((markOutPercent - markInPercent) * 100, 2) + "%";
+    if (!isNaN(markInPercent))
+      markBar.style.left = vjs.round(markInPercent * 100, 2) + "%";
+    if (!isNaN(markOutPercent))
+      markBar.style.width = vjs.round((markOutPercent - markInPercent) * 100, 2) + "%";
   }
   else {
-    markBar.el_.style.left = "0px";
-    markBar.el_.style.width = "0px";
+    markBar.style.left = "0px";
+    markBar.style.width = "0px";
   }
 };
 

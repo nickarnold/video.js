@@ -93,7 +93,7 @@ vjs.Player = vjs.Component.extend({
     this.on('error', this.onError);
     this.on('fullscreenchange', this.onFullscreenChange);
     this.on('loadedmetadata', this.onLoadedMetaData);
-    this.on('loadeddata', this.onLoadedData);
+    //this.on('loadeddata', this.onLoadedData);
     this.on('timeupdate', this.onTimeUpdate);
 
     // Make player easily findable by ID
@@ -478,7 +478,7 @@ vjs.Player.prototype.onPause = function(){
  */
 vjs.Player.prototype.onTimeUpdate = function(){
   //make sure the time doesn't go past outTime
-  var outTime = this.outTime() || 0;
+  var outTime = this.outTime();
   if (!isNaN(outTime) && this.currentTime() >= outTime) {
     if (this.currentTime > outTime) {
       this.currentTime(outTime);
@@ -703,7 +703,7 @@ vjs.Player.prototype.loadedmetadata = function(){
  * @return {vjs.Player}   self, when setting the current in time.
  */
 vjs.Player.prototype.inTime = function(seconds){
-  if (typeof seconds !== undefined) {
+  if (seconds !== undefined) {
     this.cache_.inTime = parseFloat(seconds);
 
     // We can only set the current time if we already know video dimensions
@@ -732,7 +732,7 @@ vjs.Player.prototype.inTime = function(seconds){
  * @return {vjs.Player}   self, when setting the current out time.
  */
 vjs.Player.prototype.outTime = function(seconds){
-  if (typeof seconds !== undefined) {
+  if (seconds !== undefined) {
     this.cache_.outTime = parseFloat(seconds);
     this.trigger('timeupdate');
     return this;
@@ -749,8 +749,8 @@ vjs.Player.prototype.outTime = function(seconds){
  * @return {vjs.Player|Object}   self, when setting the current mark in time
  */
 vjs.Player.prototype.markInTime = function(seconds) {
-  if (typeof seconds !== undefined) {
-    this.cache_.marInTime = parseFloat(seconds);
+  if (seconds !== undefined) {
+    this.cache_.markInTime = parseFloat(seconds);
     this.trigger('markchange');
     return this;
   }
@@ -766,8 +766,8 @@ vjs.Player.prototype.markInTime = function(seconds) {
  * @return {vjs.Player|Object}   self, when setting the current mark out time
  */
 vjs.Player.prototype.markOutTime = function(seconds) {
-  if (typeof seconds !== undefined) {
-    this.cache_.marOutTime = parseFloat(seconds);
+  if (seconds !== undefined) {
+    this.cache_.markOutTime = parseFloat(seconds);
     this.trigger('markchange');
     return this;
   }
@@ -797,7 +797,7 @@ vjs.Player.prototype.markOut = function() {
  * @return {Number} The duration of the video in seconds
  */
 vjs.Player.prototype.duration = function(seconds){
-  if (typeof seconds !== undefined) {
+  if (seconds !== undefined) {
 
     // cache the last set value for optimiized scrubbing (esp. Flash)
     this.cache_.duration = parseFloat(seconds);
